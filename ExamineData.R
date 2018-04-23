@@ -1,3 +1,6 @@
+# Install GEOquery library:
+# source("http://bioconductor.org/biocLite.R")
+# biocLite("GEOquery")
 library(GEOquery)
 citation("GEOquery")
 # GSE
