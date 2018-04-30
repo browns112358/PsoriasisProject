@@ -1,0 +1,45 @@
+library(ISLR)
+dataset <- data.frame(t(data.matrix))
+dataset2 <- t(data.matrix)
+dataset3 <- data.frame(eset)
+dataset4 <- t(eset)
+
+y <- data.labels
+library(tree) 
+
+# install party package
+library(party)
+# this creates a fatal error in r:
+# mytree <- ctree(y ~ ., data=dataset3)
+#dataset5 <- dataset3[,1:5000]
+#mytree <- ctree(y ~ ., data=dataset5)
+
+#summary(mytree)
+#print(mytree)
+#plot(mytree) 
+#text(mytree)
+#mytree
+
+
+#trainset.fit<-tree(y~dataset2, data=dataset) 
+dataset6 <- dataset3[,1:5000]
+trainset.fit<-tree(y~., data=dataset6) 
+
+summary(trainset.fit)
+print(trainset.fit)
+plot(trainset.fit) 
+text(trainset.fit)
+trainset.fit
+
+install.packages('randomForest')
+library(randomForest)
+# this runs for a long time - may need to optimize mtry and ntree
+# should also add a seed.
+forestfit <- randomForest(y~., data=dataset6, importance=TRUE, mtry=10000, ntree=10000)
+
+varImpPlot(forestfit)
+importTree <- importance(forestfit, type=1)
+importTree2 <- importTree*importTree
+importFactors = apply(importTree2, 1, function(row) all(row > 4.5))
+importTree[importFactors,]
+
