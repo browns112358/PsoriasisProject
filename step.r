@@ -2,7 +2,7 @@ library(GEOquery)
 library(glmnet)
 library(illuminaHumanv4.db)
 library(matrixStats)
-library(leaps)
+library(MASS)
 
 rm(list=ls())
 cat("\014")
@@ -15,47 +15,28 @@ gse <- getGEO("GSE47598", GSEMatrix = TRUE)
 if (length(gse) > 1) idx <- grep("GPL10558", attr(gse, "names")) else idx <- 1
 gse <- gse[[idx]]
 
-show(gse)
-
+#show(gse)
 #This is the classification vector (0 means patient, 1 is control)
-y = c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,1,1)
+y =     c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,1,1)
 
 #Convert the GSE list into a matrix (and traspose so rows are individuals (sample) and columns are genes (features).
 #eset, which is the matrix we are interested in in huge so viewing it all takes forever in R.  This just
 # let me verify that the data matches the GSM files
 eset <- t(exprs(gse))
-show(eset[,1:5])
+show(eset[1:5])
 
-#make complete matrix including dependent variable, needed for regression, stepwise, etc.
-teset <- cbind(y,eset)
-show(teset[,1:6])
-
-#data frame version of complete matrix
-teset.df = as.data.frame(teset)
-show(teset.df[,1:6])
-#use teset.df[,-1] for the original eset (no y variable)
-
-#coefficient of variation.  Used to filter out uninteresting genes (ones that don't change across samples)
 CoVar.geo = colSds(eset,cols = 1:ncol(eset))/colMeans(eset)
-filter.geo = which(CoVar.geo>0.01)
-teset.df.filtered <- teset.df[,filter.geo]
+#take top 25% of genes with the most variation across samples as a first filter
+filter.geo = which(CoVar.geo>quantile(CoVar.geo)[4])
 
-#top genes according to the study
-spats2l <- which(colnames(eset)=="ILMN_1683678")
-klf6 <- which(colnames(eset)=="ILMN_1735014")
-sp140 <- which(colnames(eset)=="ILMN_1703263")
-rora <- which(colnames(eset)=="ILMN_2322498")
+eset.df <- as.data.frame(eset)
+eset.filtered.df <- eset.df[,filter.geo]
+yeset.filtered.df = (cbind(y,eset.filtered.df))
 
-#don't need the raw data anymore so clear up the space
-rm(gse)
-rm(eset)
-rm(teset)
+min.model <- glm(y ~ 1, family=binomial(link = 'logit'), data=yeset.filtered.df)
+upper.model <- formula(glm(y~.,family = binomial(link = 'logit'), data = yeset.filtered.df))
 
-regfit.geo = regsubsets(x=teset.df.filtered[,-1],y=y,nvmax=50,method='forward',really.big = TRUE)
-summary(regfit.geo)
-
-genes = names(coef(regfit.geo,23))
-
-symbols <- mapIds(illuminaHumanv4.db, genes, "SYMBOL","PROBEID")
-
-
+fwd.geo <- step(min.model,scope = list(lower=min.model,upper=upper.model),direction = 'forward')
+fwd.geo2 <- step(min.model,scope = list(lower=min.model,upper=upper.model),direction = 'forward',k = 2)
+fwd.geo4 <- step(min.model,scope = list(lower=min.model,upper=upper.model),direction = 'forward',k = 4)
+fwd.geo5 <- step(min.model,scope = list(lower=min.model,upper=upper.model),direction = 'forward',k = 5)
