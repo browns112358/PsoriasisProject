@@ -18,12 +18,12 @@ gse <- gse[[idx]]
 #show(gse)
 #This is the classification vector (0 means patient, 1 is control)
 y =     c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,1,1)
-
+W
 #Convert the GSE list into a matrix (and traspose so rows are individuals (sample) and columns are genes (features).
 #eset, which is the matrix we are interested in in huge so viewing it all takes forever in R.  This just
 # let me verify that the data matches the GSM files
 eset <- t(exprs(gse))
-show(eset[1:5])
+show(eset[,1:5])
 
 CoVar.geo = colSds(eset,cols = 1:ncol(eset))/colMeans(eset)
 #take top 25% of genes with the most variation across samples as a first filter
@@ -33,10 +33,12 @@ eset.df <- as.data.frame(eset)
 eset.filtered.df <- eset.df[,filter.geo]
 yeset.filtered.df = (cbind(y,eset.filtered.df))
 
+rm(gse)
+rm(eset)
+rm(eset.df)
+rm(eset.filtered.df)
+
 min.model <- glm(y ~ 1, family=binomial(link = 'logit'), data=yeset.filtered.df)
 upper.model <- formula(glm(y~.,family = binomial(link = 'logit'), data = yeset.filtered.df))
 
-fwd.geo <- step(min.model,scope = list(lower=min.model,upper=upper.model),direction = 'forward')
-fwd.geo2 <- step(min.model,scope = list(lower=min.model,upper=upper.model),direction = 'forward',k = 2)
-fwd.geo4 <- step(min.model,scope = list(lower=min.model,upper=upper.model),direction = 'forward',k = 4)
-fwd.geo5 <- step(min.model,scope = list(lower=min.model,upper=upper.model),direction = 'forward',k = 5)
+fwd.geo <- step(min.model,scope = list(lower=min.model,upper=upper.model),direction = 'forward',steps = 10)
