@@ -3,7 +3,7 @@ dataset <- data.frame(t(data.matrix))
 dataset2 <- t(data.matrix)
 dataset3 <- data.frame(eset)
 dataset4 <- t(eset)
-
+#dataset6 <- dataset3[,1:5000]
 y <- data.labels
 library(tree) 
 
@@ -20,29 +20,17 @@ library(party)
 #text(mytree)
 #mytree
 
-
-#trainset.fit<-tree(y~dataset2, data=dataset) 
-dataset6 <- dataset3[,1:5000]
-trainset.fit<-tree(y~., data=dataset6) 
-
-summary(trainset.fit)
-print(trainset.fit)
-plot(trainset.fit) 
-text(trainset.fit)
-trainset.fit
-
-install.packages('randomForest')
+#install.packages('randomForest')
 library(randomForest)
 # this runs for a long time - may need to optimize mtry and ntree
 # should also add a seed.
 #forestfit <- randomForest(y~., data=dataset6, importance=TRUE, mtry=10000, ntree=10000)
-forestfit <- randomForest(y~., data=dataset6, importance=TRUE, mtry=10000, ntree=10000)
-varImpPlot(forestfit)
-importTree <- importance(forestfit, type=1)
-importTree2 <- importTree*importTree
-importFactors = apply(importTree2, 1, function(row) all(row > 6))
-fac <- importTree[importFactors,]
-fac <- fac[order(fac)]
+#varImpPlot(forestfit)
+#importTree <- importance(forestfit, type=1)
+#importTree2 <- importTree*importTree
+#importFactors = apply(importTree2, 1, function(row) all(row > 6))
+#fac <- importTree[importFactors,]
+#fac <- fac[order(fac)]
 #source("http://bioconductor.org/biocLite.R")
 #biocLite("illuminaHumanv4.db")
 
@@ -50,23 +38,23 @@ library(illuminaHumanv4.db)
 
 #x <- "ILMN_1683678"
 #symbols <- mapIds(illuminaHumanv4.db, x, "SYMBOL","PROBEID")
-symbols <- mapIds(illuminaHumanv4.db, names(fac), "SYMBOL","PROBEID")
-symbols
+#symbols <- mapIds(illuminaHumanv4.db, names(fac), "SYMBOL","PROBEID")
+#symbols
 
-dataset7 <- dataset3[,1:1000]
-forestfit <- randomForest(y~., data=dataset7, importance=TRUE, ntree=10000)
-varImpPlot(forestfit)
-importTree <- importance(forestfit, type=1)
-importTree2 <- importTree*importTree
-importFactors = apply(importTree2, 1, function(row) all(row > 10))
-fac <- importTree[importFactors,]
-fac <- fac[order(fac)]
-symbols <- mapIds(illuminaHumanv4.db, names(fac), "SYMBOL","PROBEID")
-symbols
-fac
+#dataset7 <- dataset3[,1:1000]
+#forestfit <- randomForest(y~., data=dataset7, importance=TRUE, ntree=10000)
+#varImpPlot(forestfit)
+#importTree <- importance(forestfit, type=1)
+#importTree2 <- importTree*importTree
+#importFactors = apply(importTree2, 1, function(row) all(row > 10))
+#fac <- importTree[importFactors,]
+#fac <- fac[order(fac)]
+#symbols <- mapIds(illuminaHumanv4.db, names(fac), "SYMBOL","PROBEID")
+#symbols
+#fac
 
 
-
+importFactors.append = FALSE
 fac.append = 0
 
 for (i in 0:47){
@@ -83,11 +71,12 @@ for (i in 0:47){
   symbols <- mapIds(illuminaHumanv4.db, names(fac), "SYMBOL","PROBEID")
   symbols
   fac.append = append(fac.append,fac)
+  importFactors.append = append(importFactors.append,importFactors)
   
 }
 
 
-dataset7 <- dataset3[,47000:48107]
+dataset7 <- dataset3[,47000:47222]
 forestfit <- randomForest(y~., data=dataset7, importance=TRUE, ntree=10000)
 varImpPlot(forestfit)
 importTree <- importance(forestfit, type=1)
@@ -98,30 +87,13 @@ fac <- fac[order(fac)]
 symbols <- mapIds(illuminaHumanv4.db, names(fac), "SYMBOL","PROBEID")
 symbols
 fac.append = append(fac.append,fac)
+importFactors.append = append(importFactors.append,importFactors)
+
+importFactors.append = importFactors.append[2:length(importFactors.append)]
 
 
-fac.append <- fac.append[order(fac.append)]
-fac.append
-symbols <- mapIds(illuminaHumanv4.db, names(fac.append), "SYMBOL","PROBEID")
-symbols
-
-initialVals1 = apply(fac.append, 1, function(x) all(x > 7))
-initialVals1
-
-
-lines = 1
-for (i in 1:length(fac.append)){
-  if (fac.append[i]>0) {
-     line = which(dataset3 == names(fac.append[i]))
-     if (length(line)>0){
-        lines = append(lines, line()[[1]])
-     }
-  }
-}
-
-
-dataset7 <- dataset3[,t(lines)]
-forestfit <- randomForest(y~., data=dataset7, importance=TRUE, mtry=10000, ntree=10000)
+dataset8 <- dataset3[,importFactors.append]
+forestfit <- randomForest(y~., data=dataset8, importance=TRUE, ntree=10000)
 varImpPlot(forestfit)
 importTree <- importance(forestfit, type=1)
 importTree2 <- importTree*importTree
@@ -131,3 +103,13 @@ fac <- fac[order(fac)]
 symbols <- mapIds(illuminaHumanv4.db, names(fac), "SYMBOL","PROBEID")
 symbols
 fac
+
+#trainset.fit<-tree(y~dataset2, data=dataset) 
+
+trainset.fit<-tree(y~., data=dataset7) 
+
+summary(trainset.fit)
+print(trainset.fit)
+plot(trainset.fit) 
+text(trainset.fit)
+trainset.fit
