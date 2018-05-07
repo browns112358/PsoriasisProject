@@ -1,0 +1,72 @@
+# building a tree for visual purposes, 1st choice is always ILMN_1683678 - it only requires 1 choice point:
+library(caret) 
+
+
+dataset9 = dataset8[,importFactors]
+trainset.fit<-tree(y~., data=dataset9) 
+
+summary(trainset.fit)
+print(trainset.fit)
+plot(trainset.fit) 
+text(trainset.fit)
+trainset.fit
+
+# create more interesting trees by taking key items from previous trees out
+# ILMN_1683678 = dataset3[6963]
+
+importFactors.append[6963] = FALSE
+dataset8 <- dataset3[,importFactors.append]
+trainset.fit<-tree(y~., data=dataset8) 
+
+summary(trainset.fit)
+print(trainset.fit)
+plot(trainset.fit) 
+text(trainset.fit)
+trainset.fit
+
+
+trainset.predict <- predict(trainset.fit, dataset8) 
+trainset.prediction = TRUE
+for (i in 1:24){
+  trainset.prediction[i] = TRUE
+  if (trainset.predict[i]<.5){
+    trainset.prediction[i] = FALSE
+  }
+  
+}
+
+confusionMatrix(y, trainset.prediction)
+
+trainset.predict <- predict(trainset.fit, dataset8) 
+
+summary(trainset.fit)
+print(trainset.fit)
+plot(trainset.fit) 
+text(trainset.fit)
+trainset.fit
+
+# ILMN_1667804 = dataset3[3701]
+# ILMN_1651769 = dataset3[161]
+
+importFactors.append[3701] = FALSE
+importFactors.append[161] = FALSE
+dataset8 <- dataset3[,importFactors.append]
+trainset.fit<-tree(y~., data=dataset8) 
+
+summary(trainset.fit)
+print(trainset.fit)
+plot(trainset.fit) 
+text(trainset.fit)
+trainset.fit
+
+trainset.predict <- predict(trainset.fit, dataset8) 
+trainset.prediction = TRUE
+for (i in 1:24){
+  trainset.prediction[i] = TRUE
+  if (trainset.predict[i]<.5){
+    trainset.prediction[i] = FALSE
+  }
+  
+}
+
+confusionMatrix(y, trainset.prediction)
