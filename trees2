@@ -1,115 +1,72 @@
-library(ISLR)
-dataset <- data.frame(t(data.matrix))
-dataset2 <- t(data.matrix)
-dataset3 <- data.frame(eset)
-dataset4 <- t(eset)
-#dataset6 <- dataset3[,1:5000]
-y <- data.labels
-library(tree) 
-
-# install party package
-library(party)
-# this creates a fatal error in r:
-# mytree <- ctree(y ~ ., data=dataset3)
-#dataset5 <- dataset3[,1:5000]
-#mytree <- ctree(y ~ ., data=dataset5)
-
-#summary(mytree)
-#print(mytree)
-#plot(mytree) 
-#text(mytree)
-#mytree
-
-#install.packages('randomForest')
-library(randomForest)
-# this runs for a long time - may need to optimize mtry and ntree
-# should also add a seed.
-#forestfit <- randomForest(y~., data=dataset6, importance=TRUE, mtry=10000, ntree=10000)
-#varImpPlot(forestfit)
-#importTree <- importance(forestfit, type=1)
-#importTree2 <- importTree*importTree
-#importFactors = apply(importTree2, 1, function(row) all(row > 6))
-#fac <- importTree[importFactors,]
-#fac <- fac[order(fac)]
-#source("http://bioconductor.org/biocLite.R")
-#biocLite("illuminaHumanv4.db")
-
-library(illuminaHumanv4.db)
-
-#x <- "ILMN_1683678"
-#symbols <- mapIds(illuminaHumanv4.db, x, "SYMBOL","PROBEID")
-#symbols <- mapIds(illuminaHumanv4.db, names(fac), "SYMBOL","PROBEID")
-#symbols
-
-#dataset7 <- dataset3[,1:1000]
-#forestfit <- randomForest(y~., data=dataset7, importance=TRUE, ntree=10000)
-#varImpPlot(forestfit)
-#importTree <- importance(forestfit, type=1)
-#importTree2 <- importTree*importTree
-#importFactors = apply(importTree2, 1, function(row) all(row > 10))
-#fac <- importTree[importFactors,]
-#fac <- fac[order(fac)]
-#symbols <- mapIds(illuminaHumanv4.db, names(fac), "SYMBOL","PROBEID")
-#symbols
-#fac
+# building a tree for visual purposes, 1st choice is always ILMN_1683678 - it only requires 1 choice point:
+library(caret) 
 
 
-importFactors.append = FALSE
-fac.append = 0
-
-for (i in 0:47){
-  start = 1+i*1000
-  end = 1000+i*1000
-  dataset7 <- dataset3[,start:end]
-  forestfit <- randomForest(y~., data=dataset7, importance=TRUE, ntree=10000)
-  varImpPlot(forestfit)
-  importTree <- importance(forestfit, type=1)
-  importTree2 <- importTree*importTree
-  importFactors = apply(importTree2, 1, function(row) all(row > 10))
-  fac <- importTree[importFactors,]
-  fac <- fac[order(fac)]
-  symbols <- mapIds(illuminaHumanv4.db, names(fac), "SYMBOL","PROBEID")
-  symbols
-  fac.append = append(fac.append,fac)
-  importFactors.append = append(importFactors.append,importFactors)
-  
-}
-
-
-dataset7 <- dataset3[,47000:47222]
-forestfit <- randomForest(y~., data=dataset7, importance=TRUE, ntree=10000)
-varImpPlot(forestfit)
-importTree <- importance(forestfit, type=1)
-importTree2 <- importTree*importTree
-importFactors = apply(importTree2, 1, function(row) all(row > 10))
-fac <- importTree[importFactors,]
-fac <- fac[order(fac)]
-symbols <- mapIds(illuminaHumanv4.db, names(fac), "SYMBOL","PROBEID")
-symbols
-fac.append = append(fac.append,fac)
-importFactors.append = append(importFactors.append,importFactors)
-
-importFactors.append = importFactors.append[2:length(importFactors.append)]
-
-
-dataset8 <- dataset3[,importFactors.append]
-forestfit <- randomForest(y~., data=dataset8, importance=TRUE, ntree=10000)
-varImpPlot(forestfit)
-importTree <- importance(forestfit, type=1)
-importTree2 <- importTree*importTree
-importFactors = apply(importTree2, 1, function(row) all(row > 6))
-fac <- importTree[importFactors,]
-fac <- fac[order(fac)]
-symbols <- mapIds(illuminaHumanv4.db, names(fac), "SYMBOL","PROBEID")
-symbols
-fac
-
-#trainset.fit<-tree(y~dataset2, data=dataset) 
-
-trainset.fit<-tree(y~., data=dataset7) 
+dataset9 = dataset8[,importFactors]
+trainset.fit<-tree(y~., data=dataset9) 
 
 summary(trainset.fit)
 print(trainset.fit)
 plot(trainset.fit) 
 text(trainset.fit)
 trainset.fit
+
+# create more interesting trees by taking key items from previous trees out
+# ILMN_1683678 = dataset3[6963]
+
+importFactors.append[6963] = FALSE
+dataset8 <- dataset3[,importFactors.append]
+trainset.fit<-tree(y~., data=dataset8) 
+
+summary(trainset.fit)
+print(trainset.fit)
+plot(trainset.fit) 
+text(trainset.fit)
+trainset.fit
+
+
+trainset.predict <- predict(trainset.fit, dataset8) 
+trainset.prediction = TRUE
+for (i in 1:24){
+  trainset.prediction[i] = TRUE
+  if (trainset.predict[i]<.5){
+    trainset.prediction[i] = FALSE
+  }
+  
+}
+
+confusionMatrix(y, trainset.prediction)
+
+trainset.predict <- predict(trainset.fit, dataset8) 
+
+summary(trainset.fit)
+print(trainset.fit)
+plot(trainset.fit) 
+text(trainset.fit)
+trainset.fit
+
+# ILMN_1667804 = dataset3[3701]
+# ILMN_1651769 = dataset3[161]
+
+importFactors.append[3701] = FALSE
+importFactors.append[161] = FALSE
+dataset8 <- dataset3[,importFactors.append]
+trainset.fit<-tree(y~., data=dataset8) 
+
+summary(trainset.fit)
+print(trainset.fit)
+plot(trainset.fit) 
+text(trainset.fit)
+trainset.fit
+
+trainset.predict <- predict(trainset.fit, dataset8) 
+trainset.prediction = TRUE
+for (i in 1:24){
+  trainset.prediction[i] = TRUE
+  if (trainset.predict[i]<.5){
+    trainset.prediction[i] = FALSE
+  }
+  
+}
+
+confusionMatrix(y, trainset.prediction)
