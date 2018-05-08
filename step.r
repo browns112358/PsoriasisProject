@@ -18,7 +18,7 @@ gse <- gse[[idx]]
 #show(gse)
 #This is the classification vector (0 means patient, 1 is control)
 y =     c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,1,1)
-W
+
 #Convert the GSE list into a matrix (and traspose so rows are individuals (sample) and columns are genes (features).
 #eset, which is the matrix we are interested in in huge so viewing it all takes forever in R.  This just
 # let me verify that the data matches the GSM files
